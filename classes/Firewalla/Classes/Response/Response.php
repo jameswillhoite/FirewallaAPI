@@ -8,13 +8,13 @@ class Response
      * Is error
      * @var bool
      */
-    public bool $error;
+    public bool $error = false;
 
     /**
      * The Error Message
      * @var string
      */
-    public string $error_msg;
+    public string $error_msg = "";
 
     /**
      * The Record
