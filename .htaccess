@@ -1,0 +1,6 @@
+
+
+#Don't allow access to any "." files
+<FilesMatch "\..*">
+    Require all deny
+</FilesMatch>
