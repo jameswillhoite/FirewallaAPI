@@ -2,8 +2,6 @@
 
 namespace Firewalla;
 
-defined("DS") || define("DS", DIRECTORY_SEPARATOR);
-
 spl_autoload_register("Firewalla\\Autoloader::load");
 
 class Autoloader
@@ -18,7 +16,7 @@ class Autoloader
         $exp = explode("\\", $class);
         array_shift($exp);
 
-        $path = __DIR__ . DS . 'Classes' . DS . implode(DS, $exp) . ".php";
+        $path = __DIR__ . DS . implode(DS, $exp) . ".php";
 
         if(file_exists($path))
         {
