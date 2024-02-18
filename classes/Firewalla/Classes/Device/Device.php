@@ -6,7 +6,7 @@ use Firewalla\Classes\Base\Base;
 use Firewalla\Classes\Group\Group;
 use Firewalla\Classes\Network\Network;
 
-class Device extends Base
+class Device extends Host
 {
     /**
      * This device's unique identifier
@@ -19,18 +19,6 @@ class Device extends Base
      * @var string
      */
     public string $gid;
-
-    /**
-     * Device display name
-     * @var string
-     */
-    public string $name;
-
-    /**
-     * Device IP address
-     * @var string
-     */
-    public string $ip;
 
     /**
      * Vendor registered to the MAC address. Returned only if this device has a valid MAC address
@@ -91,11 +79,9 @@ class Device extends Base
      */
     public static function getParamMap(): array
     {
-        return [
-            "id" => "string",
+        return array_merge(parent::getParamMap(),
+            [
             "gid" => "string",
-            "name" => "string",
-            "ip" => "string",
             "macVendor" => "string",
             "online" => "bool",
             "lastSeen" => \DateTime::class,
@@ -105,6 +91,6 @@ class Device extends Base
             "totalDownload" => "float",
             "totalUpload" => "float",
             "deviceType" => "string"
-        ];
+        ]);
     }
 }

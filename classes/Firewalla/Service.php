@@ -5,8 +5,10 @@ namespace Firewalla;
 use Dotenv\Dotenv;
 use Firewalla\Classes\Box\Box;
 use Firewalla\Classes\Device\Device;
+use Firewalla\Classes\Flow\Flow;
 use Firewalla\Classes\Request\GetListBoxesRequest;
 use Firewalla\Classes\Request\GetListDevicesRequest;
+use Firewalla\Classes\Request\GetListFlowsRequest;
 use Firewalla\Classes\Request\GetListRequest;
 use Firewalla\Classes\Request\GetRequest;
 use Firewalla\Classes\Response\GetListResponse;
@@ -295,5 +297,96 @@ class Service
         }
 
         return $response;
+    }
+
+    public function getFlows(GetListFlowsRequest $request): GetListResponse
+    {
+        $response = new GetListResponse();
+        $endpoint = "flows";
+        $params = [];
+
+        if(!isset($request->endCursor))
+        {
+            if(isset($request->limit))
+            {
+                if($request->limit <= 0)
+                {
+                    $response->error = true;
+                    $response->error_msg = "Invalid Limit";
+                    return $response;
+                }
+
+                if ($request->limit > 500)
+                {
+                    $response->error = true;
+                    $response->error_msg = "Invalid Limit. Must be less than or equal to 500";
+                    return $response;
+                }
+
+                $params[] = "limit={$request->limit}";
+            }
+
+            if(isset($request->groupBy))
+            {
+                $params[] = "groupBy=" . implode(',', $request->groupBy);
+            }
+
+            if(isset($request->sortBy))
+            {
+                $params[] = "sortBy=" . implode(',', $request->sortBy);
+            }
+
+            if(isset($request->query))
+            {
+                $params[] = "query={$request->query}";
+            }
+        }
+
+        if(isset($request->endCursor))
+        {
+            $params[] = "cursor={$request->endCursor}";
+        }
+
+        if(count($params) > 0)
+        {
+            $endpoint .= "?" . implode('&', $params);
+        }
+
+        $rsp = $this->client->makeRequest("GET", $endpoint);
+
+        if($rsp->error)
+        {
+            $response->error = true;
+            $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        $response->endCursor = "";
+        $response->hasNextPage = false;
+        $response->record = [];
+
+        //This response is a little different from the rest
+        if(isset($rsp->record->next_cursor))
+        {
+            $response->endCursor = $rsp->record->next_cursor;
+            $response->hasNextPage = true;
+        }
+
+        if(isset($rsp->record->count))
+        {
+            $response->totalRecords = (int)$rsp->record->count;
+        }
+
+        foreach ($rsp->record->results as $record)
+        {
+            $f = new Flow();
+            $this->buildObject($f, $record);
+            $response->record[] = $f;
+        }
+
+        return $response;
+
+
     }
 }

@@ -83,8 +83,8 @@ class Client
             'Accept: application/json',
             'Authorization: Token ' . $this->token
         ));
-
-        $data = json_decode(curl_exec($c));
+        $raw = curl_exec($c);
+        $data = json_decode($raw);
         $curlInfo = curl_getinfo($c);
         $errorNo = curl_errno($c);
         $errorMsg = curl_error($c);
