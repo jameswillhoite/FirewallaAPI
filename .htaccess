@@ -4,3 +4,7 @@
 <FilesMatch "\..*">
     Require all deny
 </FilesMatch>
+
+<Files "classes/">
+    Require all deny
+</Files>
