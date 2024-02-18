@@ -3,6 +3,8 @@
 namespace Firewalla;
 
 use Dotenv\Dotenv;
+use Firewalla\Classes\Box\Box;
+use Firewalla\Classes\Request\GetListBoxesRequest;
 use Firewalla\Classes\Request\GetListRequest;
 use Firewalla\Classes\Request\GetRequest;
 use Firewalla\Classes\Response\GetListResponse;
@@ -190,6 +192,51 @@ class Service
             $l = new TargetList();
             $this->buildObject($l, $record);
             $response->record[] = $l;
+        }
+
+        return $response;
+
+    }
+
+    /**
+     * Get a list of all boxes in the MSP
+     * @param GetListBoxesRequest $request
+     * @return GetListResponse
+     */
+    public function getBoxes(GetListBoxesRequest $request): GetListResponse
+    {
+        $endpoint = "boxes";
+
+        if(isset($request->boxGroup))
+        {
+            $endpoint .= "?group={$request->boxGroup}";
+        }
+
+        $response = new GetListResponse();
+
+        $rsp = $this->client->makeRequest("GET", $endpoint);
+
+        if($rsp->error)
+        {
+            $response->error = true;
+            $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        $response->record = [];
+
+        if(!$rsp->record || count($rsp->record) === 0)
+        {
+            return $response;
+        }
+
+        foreach ($rsp->record as $record)
+        {
+            $r = new Box();
+            $this->buildObject($r, $record);
+
+            $response->record[] = $r;
         }
 
         return $response;
