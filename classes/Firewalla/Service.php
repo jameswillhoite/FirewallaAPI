@@ -4,7 +4,9 @@ namespace Firewalla;
 
 use Dotenv\Dotenv;
 use Firewalla\Classes\Box\Box;
+use Firewalla\Classes\Device\Device;
 use Firewalla\Classes\Request\GetListBoxesRequest;
+use Firewalla\Classes\Request\GetListDevicesRequest;
 use Firewalla\Classes\Request\GetListRequest;
 use Firewalla\Classes\Request\GetRequest;
 use Firewalla\Classes\Response\GetListResponse;
@@ -102,7 +104,7 @@ class Service
                 if(is_object($value))
                 {
                     $base->{$key} = new $mapVal();
-                    $this->buildObject($base, $value);
+                    $this->buildObject($base->{$key}, $value);
                 }
                 else
                 {
@@ -241,5 +243,57 @@ class Service
 
         return $response;
 
+    }
+
+    /**
+     * Get a list of Devices
+     * @param GetListDevicesRequest $request
+     * @return GetListResponse
+     */
+    public function getDevices(GetListDevicesRequest $request): GetListResponse
+    {
+        $response = new GetListResponse();
+        $endpoint = "devices";
+        $params = [];
+
+        if(isset($request->group))
+        {
+            $params[] = "group={$request->group}";
+        }
+        if(isset($request->box))
+        {
+            $params[] = "box={$request->box}";
+        }
+
+        if(count($params) > 0)
+        {
+            $endpoint .= "?" . implode('&', $params);
+        }
+
+        $rsp = $this->client->makeRequest("GET", $endpoint);
+
+        if($rsp->error)
+        {
+            $response->error = true;
+            $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        $response->record = [];
+
+        if(count($rsp->record) === 0)
+        {
+            return $response;
+        }
+
+        foreach ($rsp->record as $record)
+        {
+            $d = new Device();
+            $this->buildObject($d, $record);
+            $response->record[] = $d;
+        }
+
+        return $response;
     }
 }
