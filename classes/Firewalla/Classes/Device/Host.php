@@ -3,6 +3,7 @@
 namespace Firewalla\Classes\Device;
 
 use Firewalla\Classes\Base\Base;
+use Firewalla\Classes\Info\PortInfo;
 
 class Host extends Base
 {
@@ -25,6 +26,9 @@ class Host extends Base
      */
     public string $name;
 
+    public PortInfo $portInfo;
+
+    public string $type;
 
 
     /**
@@ -35,7 +39,9 @@ class Host extends Base
         return [
             "ip" => "string",
             "id" => "string",
-            "name" => "string"
+            "name" => "string",
+            "portInfo" => PortInfo::class,
+            "type" => "string"
         ];
     }
 }
