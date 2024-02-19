@@ -33,6 +33,7 @@ class Blocklist
     {
         $list = [];
         $handle = null;
+        $ignoreRegex = "/^(127\.0|0\.0\.)/";
 
         try {
             $handle = fopen($this->file, "r");
@@ -57,7 +58,7 @@ class Blocklist
 
                 $url = $matches[1] ?? "";
 
-                if(!empty($ip_address) && $ip_address !== "0.0.0.0" && $ip_address !== "0.0.0.0/0")
+                if(strlen($ip_address) > 0 && !preg_match($ignoreRegex, $ip_address))
                 {
                     $list[] = $ip_address;
                 }
