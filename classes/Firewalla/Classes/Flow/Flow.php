@@ -5,6 +5,7 @@ namespace Firewalla\Classes\Flow;
 use Firewalla\Classes\Base\Base;
 use Firewalla\Classes\Device\Device;
 use Firewalla\Classes\Device\Host;
+use Firewalla\Classes\Group\Group;
 use Firewalla\Classes\Network\Network;
 
 class Flow extends Base
@@ -105,6 +106,8 @@ class Flow extends Base
      */
     public Network $network;
 
+    public Group $group;
+
 
     /**
      * @inheritDoc
@@ -127,7 +130,8 @@ class Flow extends Base
             "destination" => Host::class,
             "region" => "string",
             "category" => "string",
-            "network" => Network::class
+            "network" => Network::class,
+            "group" => Group::class
         ];
     }
 }
