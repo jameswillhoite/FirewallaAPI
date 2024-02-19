@@ -415,7 +415,7 @@ class Service
 
             if(isset($request->query))
             {
-                $params[] = "query={$request->query}";
+                $params[] = "query=" . urlencode($request->query);
             }
         }
 
