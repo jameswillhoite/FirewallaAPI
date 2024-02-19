@@ -24,13 +24,11 @@ defined("BASE") || define("BASE", realpath(__DIR__ . DS . '..' . DS . '..'));
 
 require_once BASE . DS . 'vendor' . DS . 'autoload.php';
 
-if(!class_exists(Client::class))
-{
+if (!class_exists(Client::class)) {
     require_once __DIR__ . DS . 'Client.php';
 }
 
-if(!class_exists(Autoloader::class))
-{
+if (!class_exists(Autoloader::class)) {
     require_once __DIR__ . DS . 'Autoloader.php';
 }
 
@@ -52,16 +50,15 @@ class Service
      */
     protected function cast(string $type, $value)
     {
-        switch (strtolower($type))
-        {
+        switch (strtolower($type)) {
             case "string":
                 return (string)$value;
 
             case "int":
-                return (int) $value;
+                return (int)$value;
 
             case "float":
-                return (float) $value;
+                return (float)$value;
 
             case "datetime":
                 $dt = new \DateTime();
@@ -70,8 +67,7 @@ class Service
                 return new \DateTime(strtotime($value), new \DateTimeZone("UTC"));
 
             default:
-                if(preg_match("|^Firewalla\\\|", $type) && is_object($value))
-                {
+                if (preg_match("|^Firewalla\\\|", $type) && is_object($value)) {
                     $obj = new $type();
                     $this->buildObject($obj, $value);
                     return $obj;
@@ -90,8 +86,7 @@ class Service
      */
     protected function buildObject(object $base, object $data)
     {
-        if(!method_exists($base, "getParamMap"))
-        {
+        if (!method_exists($base, "getParamMap")) {
             return;
         }
 
@@ -107,21 +102,15 @@ class Service
                 foreach ($value as $val) {
                     $base->{$key}[] = $this->cast($mapVal, $val);
                 }
-            }
-            else
-            {
-                if(is_object($value))
-                {
+            } else {
+                if (is_object($value)) {
                     $base->{$key} = new $mapVal();
                     $this->buildObject($base->{$key}, $value);
-                }
-                else
-                {
+                } else {
                     $base->{$key} = $this->cast($mapVal, $value);
                 }
             }
         }
-
 
 
     }
@@ -135,8 +124,7 @@ class Service
     {
         $response = new GetResponse();
 
-        if(empty($request->id))
-        {
+        if (empty($request->id)) {
             $response->error = true;
             $response->error_msg = "No ID given";
 
@@ -147,16 +135,14 @@ class Service
 
         $rsp = $this->client->makeRequest("GET", $endpoint);
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
             return $response;
         }
 
-        if(!isset($rsp->record))
-        {
+        if (!isset($rsp->record)) {
             return $response;
         }
 
@@ -183,8 +169,7 @@ class Service
 
         $rsp = $this->client->makeRequest("GET", $endpoint);
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
@@ -193,13 +178,11 @@ class Service
 
         $response->record = [];
 
-        if(empty($rsp->record))
-        {
+        if (empty($rsp->record)) {
             return $response;
         }
 
-        foreach ($rsp->record as $record)
-        {
+        foreach ($rsp->record as $record) {
             $l = new TargetList();
             $this->buildObject($l, $record);
             $response->record[] = $l;
@@ -214,8 +197,7 @@ class Service
         $response = new Response();
         $endpoint = "target-lists";
 
-        if(!isset($request->record) || !$request->record instanceof TargetList)
-        {
+        if (!isset($request->record) || !$request->record instanceof TargetList) {
             $response->error = true;
             $response->error_msg = "Missing or invalid Record. Must be instance of " . TargetList::class;
 
@@ -224,16 +206,14 @@ class Service
 
         $record = $request->record;
 
-        if(empty($record->name) || strlen($record->name ?? "") > 24)
-        {
+        if (empty($record->name) || strlen($record->name ?? "") > 24) {
             $response->error = true;
             $response->error_msg = "Missing or invalid Name. Name cannot be longer than 24 characters";
 
             return $response;
         }
 
-        if(empty($record->owner ?? ""))
-        {
+        if (empty($record->owner ?? "")) {
             $response->error = true;
             $response->error_msg = "Box owner is required for creation";
             return $response;
@@ -241,8 +221,7 @@ class Service
 
         $count = count($record->targets);
 
-        if($count === 0 || $count > 2000)
-        {
+        if ($count === 0 || $count > 2000) {
             $response->error = true;
             $response->error_msg = "Invalid targets. Must not be greater than 2000";
 
@@ -251,16 +230,14 @@ class Service
 
         $rsp = $this->client->makeRequest("POST", $endpoint, json_encode($record));
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
             return $response;
         }
 
-        if($this->client->getLastHttpCode() === 400)
-        {
+        if ($this->client->getLastHttpCode() === 400) {
             $response->error = true;
             $response->error_msg = "Bad Request";
 
@@ -284,8 +261,7 @@ class Service
     {
         $endpoint = "boxes";
 
-        if(isset($request->boxGroup))
-        {
+        if (isset($request->boxGroup)) {
             $endpoint .= "?group={$request->boxGroup}";
         }
 
@@ -293,8 +269,7 @@ class Service
 
         $rsp = $this->client->makeRequest("GET", $endpoint);
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
@@ -303,13 +278,11 @@ class Service
 
         $response->record = [];
 
-        if(!$rsp->record || count($rsp->record) === 0)
-        {
+        if (!$rsp->record || count($rsp->record) === 0) {
             return $response;
         }
 
-        foreach ($rsp->record as $record)
-        {
+        foreach ($rsp->record as $record) {
             $r = new Box();
             $this->buildObject($r, $record);
 
@@ -331,24 +304,20 @@ class Service
         $endpoint = "devices";
         $params = [];
 
-        if(isset($request->group))
-        {
+        if (isset($request->group)) {
             $params[] = "group={$request->group}";
         }
-        if(isset($request->box))
-        {
+        if (isset($request->box)) {
             $params[] = "box={$request->box}";
         }
 
-        if(count($params) > 0)
-        {
+        if (count($params) > 0) {
             $endpoint .= "?" . implode('&', $params);
         }
 
         $rsp = $this->client->makeRequest("GET", $endpoint);
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
@@ -357,13 +326,11 @@ class Service
 
         $response->record = [];
 
-        if(count($rsp->record) === 0)
-        {
+        if (count($rsp->record) === 0) {
             return $response;
         }
 
-        foreach ($rsp->record as $record)
-        {
+        foreach ($rsp->record as $record) {
             $d = new Device();
             $this->buildObject($d, $record);
             $response->record[] = $d;
@@ -382,57 +349,45 @@ class Service
         $endpoint = "flows";
         $params = [];
 
-        if(!isset($request->endCursor))
-        {
-            if(isset($request->limit))
-            {
-                if($request->limit <= 0)
-                {
-                    $response->error = true;
-                    $response->error_msg = "Invalid Limit";
-                    return $response;
-                }
-
-                if ($request->limit > 500)
-                {
-                    $response->error = true;
-                    $response->error_msg = "Invalid Limit. Must be less than or equal to 500";
-                    return $response;
-                }
-
-                $params[] = "limit={$request->limit}";
+        if (isset($request->limit)) {
+            if ($request->limit <= 0) {
+                $response->error = true;
+                $response->error_msg = "Invalid Limit";
+                return $response;
             }
 
-            if(isset($request->groupBy))
-            {
-                $params[] = "groupBy=" . implode(',', $request->groupBy);
+            if ($request->limit > 500) {
+                $response->error = true;
+                $response->error_msg = "Invalid Limit. Must be less than or equal to 500";
+                return $response;
             }
 
-            if(isset($request->sortBy))
-            {
-                $params[] = "sortBy=" . implode(',', $request->sortBy);
-            }
-
-            if(isset($request->query))
-            {
-                $params[] = "query=" . urlencode($request->query);
-            }
+            $params[] = "limit={$request->limit}";
         }
 
-        if(isset($request->endCursor))
-        {
-            $params[] = "cursor={$request->endCursor}";
+        if (isset($request->groupBy)) {
+            $params[] = "groupBy=" . implode(',', $request->groupBy);
         }
 
-        if(count($params) > 0)
-        {
+        if (isset($request->sortBy)) {
+            $params[] = "sortBy=" . implode(',', $request->sortBy);
+        }
+
+        if (isset($request->query)) {
+            $params[] = "query=" . urlencode($request->query);
+        }
+
+        if (isset($request->endCursor)) {
+            $params[] = "cursor=" . urlencode($request->endCursor);
+        }
+
+        if (count($params) > 0) {
             $endpoint .= "?" . implode('&', $params);
         }
 
         $rsp = $this->client->makeRequest("GET", $endpoint);
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
@@ -444,19 +399,16 @@ class Service
         $response->record = [];
 
         //This response is a little different from the rest
-        if(isset($rsp->record->next_cursor))
-        {
+        if (isset($rsp->record->next_cursor)) {
             $response->endCursor = $rsp->record->next_cursor;
             $response->hasNextPage = true;
         }
 
-        if(isset($rsp->record->count))
-        {
+        if (isset($rsp->record->count)) {
             $response->totalRecords = (int)$rsp->record->count;
         }
 
-        foreach ($rsp->record->results as $record)
-        {
+        foreach ($rsp->record->results as $record) {
             $f = new Flow();
             $this->buildObject($f, $record);
             $response->record[] = $f;
@@ -477,8 +429,7 @@ class Service
         $params = [];
         $endpoint = "trends/";
 
-        switch(strtolower($request->type ?? ""))
-        {
+        switch (strtolower($request->type ?? "")) {
             case "flows":
                 $endpoint .= "flows";
                 break;
@@ -494,13 +445,11 @@ class Service
                 return $response;
         }
 
-        if(isset($request->group))
-        {
+        if (isset($request->group)) {
             $params[] = "group=" . $request->group;
         }
 
-        if(count($params) > 0)
-        {
+        if (count($params) > 0) {
             $endpoint .= "?" . implode('&', $params);
         }
 
@@ -511,16 +460,14 @@ class Service
         $response->hasNextPage = false;
         $response->totalRecords = 0;
 
-        if($rsp->error)
-        {
+        if ($rsp->error) {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
 
             return $response;
         }
 
-        foreach ($rsp->record as $record)
-        {
+        foreach ($rsp->record as $record) {
             $t = new Trend();
             $this->buildObject($t, $record);
             $response->record[] = $t;
