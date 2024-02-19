@@ -12,6 +12,11 @@ do {
     $response = $service->getFlows($request);
     $request->endCursor = $response->endCursor;
 
+    if($response->error)
+    {
+        echo "ERROR: " . $response->error_msg . "\r\n";
+    }
+
     /**
      * @var \Firewalla\Classes\Flow\Flow[]
      */
@@ -20,7 +25,3 @@ do {
 } while($response->hasNextPage);
 
 
-if($response->error)
-{
-    echo "ERROR: " . $response->error_msg . "\r\n";
-}
