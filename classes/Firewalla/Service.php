@@ -6,6 +6,7 @@ use Dotenv\Dotenv;
 use Firewalla\Classes\Box\Box;
 use Firewalla\Classes\Device\Device;
 use Firewalla\Classes\Flow\Flow;
+use Firewalla\Classes\Request\AddRequest;
 use Firewalla\Classes\Request\GetListBoxesRequest;
 use Firewalla\Classes\Request\GetListDevicesRequest;
 use Firewalla\Classes\Request\GetListFlowsRequest;
@@ -14,6 +15,7 @@ use Firewalla\Classes\Request\GetListTrendsRequest;
 use Firewalla\Classes\Request\GetRequest;
 use Firewalla\Classes\Response\GetListResponse;
 use Firewalla\Classes\Response\GetResponse;
+use Firewalla\Classes\Response\Response;
 use Firewalla\Classes\TargetList\TargetList;
 use Firewalla\Classes\Trend\Trend;
 
@@ -205,6 +207,72 @@ class Service
 
         return $response;
 
+    }
+
+    public function createTargetList(AddRequest $request): Response
+    {
+        $response = new Response();
+        $endpoint = "target-lists";
+
+        if(!isset($request->record) || !$request->record instanceof TargetList)
+        {
+            $response->error = true;
+            $response->error_msg = "Missing or invalid Record. Must be instance of " . TargetList::class;
+
+            return $response;
+        }
+
+        $record = $request->record;
+
+        if(empty($record->name) || strlen($record->name ?? "") > 24)
+        {
+            $response->error = true;
+            $response->error_msg = "Missing or invalid Name. Name cannot be longer than 24 characters";
+
+            return $response;
+        }
+
+        if(empty($record->owner ?? ""))
+        {
+            $response->error = true;
+            $response->error_msg = "Box owner is required for creation";
+            return $response;
+        }
+
+        $count = count($record->targets);
+
+        if($count === 0 || $count > 2000)
+        {
+            $response->error = true;
+            $response->error_msg = "Invalid targets. Must not be greater than 2000";
+
+            return $response;
+        }
+
+        $rsp = $this->client->makeRequest("POST", $endpoint, json_encode($record));
+
+        if($rsp->error)
+        {
+            $response->error = true;
+            $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        if($this->client->getLastHttpCode() === 400)
+        {
+            $response->error = true;
+            $response->error_msg = "Bad Request";
+
+            return $response;
+        }
+
+        $t = new TargetList();
+        $this->buildObject($t, $rsp->record);
+
+        $response->record = $t;
+
+        return $response;
     }
 
     /**

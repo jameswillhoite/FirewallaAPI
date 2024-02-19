@@ -81,6 +81,7 @@ class Client
         curl_setopt($c, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($c, CURLOPT_HTTPHEADER, array(
             'Accept: application/json',
+            "Content-Type: application/json",
             'Authorization: Token ' . $this->token
         ));
         $raw = curl_exec($c);
