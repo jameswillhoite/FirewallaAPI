@@ -10,10 +10,12 @@ use Firewalla\Classes\Request\GetListBoxesRequest;
 use Firewalla\Classes\Request\GetListDevicesRequest;
 use Firewalla\Classes\Request\GetListFlowsRequest;
 use Firewalla\Classes\Request\GetListRequest;
+use Firewalla\Classes\Request\GetListTrendsRequest;
 use Firewalla\Classes\Request\GetRequest;
 use Firewalla\Classes\Response\GetListResponse;
 use Firewalla\Classes\Response\GetResponse;
 use Firewalla\Classes\TargetList\TargetList;
+use Firewalla\Classes\Trend\Trend;
 
 defined("DS") || define("DS", DIRECTORY_SEPARATOR);
 defined("BASE") || define("BASE", realpath(__DIR__ . DS . '..' . DS . '..'));
@@ -60,7 +62,10 @@ class Service
                 return (float) $value;
 
             case "datetime":
-                return new \DateTime(strtotime($value));
+                $dt = new \DateTime();
+                $dt->setTimestamp($value)->setTimezone(new \DateTimeZone("UTC"));
+                return $dt;
+                return new \DateTime(strtotime($value), new \DateTimeZone("UTC"));
 
             default:
                 if(preg_match("|^Firewalla\\\|", $type) && is_object($value))
@@ -299,6 +304,10 @@ class Service
         return $response;
     }
 
+    /**
+     * @param GetListFlowsRequest $request
+     * @return GetListResponse
+     */
     public function getFlows(GetListFlowsRequest $request): GetListResponse
     {
         $response = new GetListResponse();
@@ -389,4 +398,69 @@ class Service
 
 
     }
+
+    /**
+     * @param GetListTrendsRequest $request
+     * @return GetListResponse
+     */
+    public function getTrends(GetListTrendsRequest $request): GetListResponse
+    {
+        $response = new GetListResponse();
+        $params = [];
+        $endpoint = "trends/";
+
+        switch(strtolower($request->type ?? ""))
+        {
+            case "flows":
+                $endpoint .= "flows";
+                break;
+            case "alarms":
+                $endpoint .= "alarms";
+                break;
+            case "rules":
+                $endpoint .= "rules";
+                break;
+            default:
+                $response->error = true;
+                $response->error_msg = "Missing or invalid Request Type. Valid Types are: flows, alarms, rules";
+                return $response;
+        }
+
+        if(isset($request->group))
+        {
+            $params[] = "group=" . $request->group;
+        }
+
+        if(count($params) > 0)
+        {
+            $endpoint .= "?" . implode('&', $params);
+        }
+
+        $rsp = $this->client->makeRequest("GET", $endpoint);
+
+        $response->record = [];
+        $response->endCursor = "";
+        $response->hasNextPage = false;
+        $response->totalRecords = 0;
+
+        if($rsp->error)
+        {
+            $response->error = true;
+            $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        foreach ($rsp->record as $record)
+        {
+            $t = new Trend();
+            $this->buildObject($t, $record);
+            $response->record[] = $t;
+            $response->totalRecords++;
+        }
+
+        return $response;
+
+    }
+
 }
