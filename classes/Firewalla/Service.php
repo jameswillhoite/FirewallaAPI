@@ -290,12 +290,23 @@ class Service
 
         $endpoint = "target-lists/{$request->record->id}";
 
+        //There are a few things that can not be included in the request. Unset those
+        unset($request->record->lastUpdated, $request->record->owner, $request->record->id);
+
         $rsp = $this->client->makeRequest("PATCH", $endpoint, json_encode($request->record));
 
         if($rsp->error)
         {
             $response->error = true;
             $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        if($this->client->getLastHttpCode() === 400)
+        {
+            $response->error = true;
+            $response->error_msg = "Bad Request";
 
             return $response;
         }
