@@ -300,6 +300,14 @@ class Service
             return $response;
         }
 
+        if($this->client->getLastHttpCode() === 400)
+        {
+            $response->error = true;
+            $response->error_msg = "Bad Request";
+
+            return $response;
+        }
+
         $t = new TargetList();
         $this->buildObject($t, $rsp->record);
 
