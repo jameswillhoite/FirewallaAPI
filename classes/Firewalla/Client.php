@@ -71,6 +71,11 @@ class Client
         {
             curl_setopt($c, CURLOPT_PUT, true);
         }
+        elseif($type === "PATCH")
+        {
+            curl_setopt($c, CURLOPT_CUSTOMREQUEST, $type);
+            curl_setopt($c, CURLOPT_POSTFIELDS, $json_body);
+        }
         else
         {
             curl_setopt($c, CURLOPT_CUSTOMREQUEST, $type);

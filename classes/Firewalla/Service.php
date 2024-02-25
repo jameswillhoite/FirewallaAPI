@@ -290,6 +290,9 @@ class Service
 
         $endpoint = "target-lists/{$request->record->id}";
 
+        //There are a few things that can not be included in the request. Unset those
+        unset($request->record->lastUpdated, $request->record->owner, $request->record->id);
+
         $rsp = $this->client->makeRequest("PATCH", $endpoint, json_encode($request->record));
 
         if($rsp->error)
