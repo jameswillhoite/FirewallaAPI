@@ -4,3 +4,18 @@
 <FilesMatch "\..*">
     Require all deny
 </FilesMatch>
+
+#Block direct access to the classes folder
+<Files "classes/">
+    Require all deny
+</Files>
+
+#Block direct access to the Vendors Folder
+<Files "vendor/">
+    Require all deny
+</Files>
+
+#Block access to the examples folder
+<Files "examples/">
+    Require all deny
+</Files>
