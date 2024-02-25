@@ -13,6 +13,7 @@ use Firewalla\Classes\Request\GetListFlowsRequest;
 use Firewalla\Classes\Request\GetListRequest;
 use Firewalla\Classes\Request\GetListTrendsRequest;
 use Firewalla\Classes\Request\GetRequest;
+use Firewalla\Classes\Request\UpdateRequest;
 use Firewalla\Classes\Response\GetListResponse;
 use Firewalla\Classes\Response\GetResponse;
 use Firewalla\Classes\Response\Response;
@@ -192,6 +193,11 @@ class Service
 
     }
 
+    /**
+     * Create a Target List
+     * @param AddRequest $request
+     * @return Response A response with the newly created list
+     */
     public function createTargetList(AddRequest $request): Response
     {
         $response = new Response();
@@ -250,6 +256,57 @@ class Service
         $response->record = $t;
 
         return $response;
+    }
+
+    /**
+     * Update a Target List
+     * @param UpdateRequest $request
+     * @return Response
+     */
+    public function updateTargetList(UpdateRequest $request): Response
+    {
+        $response = new Response();
+        if(!isset($request->record) || !$request->record instanceof TargetList)
+        {
+            $response->error = true;
+            $response->error_msg = "Record is invalid or missing. Must be a instance of " . TargetList::class;
+
+            return $response;
+        }
+
+        if(!isset($request->record->id))
+        {
+            $response->error = true;
+            $response->error_msg = "Missing or invalid Target List ID";
+            return $response;
+        }
+
+        if(count($request->record->targets) > 2000)
+        {
+            $response->error = true;
+            $response->error_msg = "Target list must be less than 2000";
+            return $response;
+        }
+
+        $endpoint = "target-lists/{$request->record->id}";
+
+        $rsp = $this->client->makeRequest("PATCH", $endpoint, json_encode($request->record));
+
+        if($rsp->error)
+        {
+            $response->error = true;
+            $response->error_msg = $rsp->error_msg;
+
+            return $response;
+        }
+
+        $t = new TargetList();
+        $this->buildObject($t, $rsp->record);
+
+        $response->record = $t;
+
+        return $response;
+
     }
 
     /**
